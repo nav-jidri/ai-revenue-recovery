@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>AI Revenue Recovery — Audit Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-deep: #00072D;
+    --bg-navy: #051650;
+    --panel: rgba(255,255,255,0.045);
+    --panel-border: rgba(255,255,255,0.08);
+    --line: rgba(255,255,255,0.10);
+    --blue: #123499;
+    --blue-vivid: #3D6BFF;
+    --blue-dark: #051650;
+    --navy: #EDEFFB;
+    --text-dim: #9AA3C7;
+    --green: #34D399;
+    --coral: #FF7A5C;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--navy);
+    font-family: 'IBM Plex Sans', sans-serif;
+    padding: 48px 24px 80px;
+    background-color: var(--bg-deep);
+    background-image:
+      radial-gradient(720px 480px at 15% -8%, rgba(61,107,255,0.35), transparent 60%),
+      radial-gradient(600px 500px at 100% 15%, rgba(18,52,153,0.30), transparent 55%),
+      radial-gradient(800px 600px at 50% 110%, rgba(5,22,80,0.55), transparent 60%),
+      linear-gradient(160deg, #00072D 0%, #030B38 45%, #051650 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+
+  .masthead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 24px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+  .masthead h1 {
+    font-weight: 700;
+    font-size: 22px;
+    margin: 0 0 4px;
+    color: var(--navy);
+  }
+  .masthead p {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .badge-new {
+    background: rgba(255,255,255,0.10);
+    color: #fff;
+    border: 1px solid var(--panel-border);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    letter-spacing: 0.3px;
+  }
+
+  .headline {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 20px;
+    padding: 32px 32px 28px;
+    margin-bottom: 32px;
+  }
+  .headline .amount {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--blue-vivid);
+  }
+  .headline .of {
+    color: var(--text-dim);
+    font-size: 16px;
+    margin-top: 8px;
+  }
+  .progress-track {
+    height: 10px;
+    background: rgba(255,255,255,0.08);
+    margin-top: 20px;
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--blue-vivid);
+    width: 60.3%;
+    border-radius: 999px;
+  }
+  .headline-stats {
+    display: flex;
+    gap: 32px;
+    margin-top: 20px;
+    font-size: 14px;
+    color: var(--text-dim);
+  }
+  .headline-stats b { color: var(--navy); font-weight: 600; }
+
+  .panel { margin-bottom: 36px; }
+  .panel h2 {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-dim);
+    margin: 0 0 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 120px 1fr 100px;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .ledger-row:last-child { border-bottom: none; }
+  .ledger-label { color: var(--navy); font-weight: 500; }
+  .ledger-bar-track {
+    height: 8px;
+    background: rgba(255,255,255,0.09);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .ledger-bar-fill {
+    height: 100%;
+    background: var(--blue-vivid);
+    border-radius: 999px;
+  }
+  .ledger-bar-fill.churn { background: #8FA8FF; }
+  .ledger-value { text-align: right; color: var(--text-dim); font-variant-numeric: tabular-nums; }
+
+  .month-split {
+    display: flex;
+    gap: 24px;
+  }
+  .month-stat {
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    flex: 1;
+  }
+  .month-stat .n {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--blue);
+  }
+  .month-stat .l {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    color: var(--text-dim);
+    font-weight: 600;
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--line);
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.4px;
+  }
+  td {
+    padding: 11px 8px;
+    border-bottom: 1px solid var(--line);
+    color: var(--navy);
+  }
+  tr:hover td { background: var(--panel); }
+
+  .chip {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .chip-low { color: var(--green); background: rgba(52,211,153,0.14); }
+  .chip-medium { color: #F5C065; background: rgba(245,192,101,0.14); }
+  .chip-high { color: var(--coral); background: rgba(255,122,92,0.14); }
+
+  .note {
+    background: var(--panel);
+    border-left: 3px solid var(--blue);
+    border-radius: 0 12px 12px 0;
+    padding: 18px 22px;
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+  .note b { color: var(--navy); }
+  .note code { background: rgba(255,255,255,0.10); color: var(--navy); padding: 1px 6px; border-radius: 4px; }
+
+  @media (max-width: 640px) {
+    .two-col { grid-template-columns: 1fr; gap: 28px; }
+    .month-split { flex-direction: column; }
+    .headline .amount { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div>
+      <h1>AI Revenue Recovery — Audit Dashboard</h1>
+      <p>Failed-subscription recovery · Razorpay AI Buildathon, Track 3</p>
+    </div>
+    <span class="badge-new">SYNTHETIC DEMO</span>
+  </div>
+
+  <div class="headline">
+    <div class="amount">₹14,563</div>
+    <div class="of">recovered of ₹24,145 at risk · 60.3%</div>
+    <div class="progress-track"><div class="progress-fill"></div></div>
+    <div class="headline-stats">
+      <div><b>37</b> accounts recovered</div>
+      <div><b>18</b> accounts unresolved</div>
+      <div><b>55</b> accounts total</div>
+    </div>
+  </div>
+
+  <div class="two-col">
+    <div class="panel">
+      <h2>By solution branch</h2>
+      
+        <div class="ledger-row">
+          <div class="ledger-label">Timing Retry</div>
+          <div class="ledger-bar-track">
+            <div class="ledger-bar-fill" style="width:85%"></div>
+          </div>
+          <div class="ledger-value">11/13 <span class="pct">(85%)</span></div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-label">Delayed Retry</div>
+          <div class="ledger-bar-track">
+            <div class="ledger-bar-fill" style="width:86%"></div>
+          </div>
+          <div class="ledger-value">6/7 <span class="pct">(86%)</span></div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-label">Update Method</div>
+          <div class="ledger-bar-track">
+            <div class="ledger-bar-fill" style="width:57%"></div>
+          </div>
+          <div class="ledger-value">8/14 <span class="pct">(57%)</span></div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-label">Notify User</div>
+          <div class="ledger-bar-track">
+            <div class="ledger-bar-fill" style="width:57%"></div>
+          </div>
+          <div class="ledger-value">12/21 <span class="pct">(57%)</span></div>
+        </div>
+    </div>
+    <div class="panel">
+      <h2>By churn risk band</h2>
+      
+        <div class="ledger-row">
+          <div class="ledger-label">Low risk</div>
+          <div class="ledger-bar-track">
+            <div class="ledger-bar-fill churn" style="width:62%"></div>
+          </div>
+          <div class="ledger-value">8/13 <span class="pct">(62%)</span></div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-label">Medium risk</div>
+          <div class="ledger-bar-track">
+            <div class="ledger-bar-fill churn" style="width:72%"></div>
+          </div>
+          <div class="ledger-value">18/25 <span class="pct">(72%)</span></div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-label">High risk</div>
+          <div class="ledger-bar-track">
+            <div class="ledger-bar-fill churn" style="width:65%"></div>
+          </div>
+          <div class="ledger-value">11/17 <span class="pct">(65%)</span></div>
+        </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Recovered by month</h2>
+    <div class="month-split">
+      <div class="month-stat"><div class="n">35</div><div class="l">Month 1 (direct recovery)</div></div>
+      <div class="month-stat"><div class="n">2</div><div class="l">Month 2 (re-engagement)</div></div>
+      <div class="month-stat"><div class="n">18</div><div class="l">Never recovered</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Unresolved accounts (18)</h2>
+    <table>
+      <thead>
+        <tr><th>Payment ID</th><th>Amount</th><th>Cause</th><th>Branch</th><th>Churn</th><th>Reminders</th></tr>
+      </thead>
+      <tbody>
+        
+        <tr>
+          <td>pay_0036</td>
+          <td>₹499</td>
+          <td>Card blocked/frozen</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-low">Low</span></td>
+          <td>13</td>
+        </tr>
+        <tr>
+          <td>pay_0007</td>
+          <td>₹799</td>
+          <td>Account/card changed</td>
+          <td>Update Method</td>
+          <td><span class="chip chip-low">Low</span></td>
+          <td>13</td>
+        </tr>
+        <tr>
+          <td>pay_0001</td>
+          <td>₹799</td>
+          <td>Expired card</td>
+          <td>Update Method</td>
+          <td><span class="chip chip-medium">Medium</span></td>
+          <td>12</td>
+        </tr>
+        <tr>
+          <td>pay_0028</td>
+          <td>₹499</td>
+          <td>Card blocked/frozen</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-medium">Medium</span></td>
+          <td>12</td>
+        </tr>
+        <tr>
+          <td>pay_0053</td>
+          <td>₹199</td>
+          <td>UPI/autopay failure</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-medium">Medium</span></td>
+          <td>12</td>
+        </tr>
+        <tr>
+          <td>pay_0012</td>
+          <td>₹199</td>
+          <td>Card blocked/frozen</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-high">High</span></td>
+          <td>11</td>
+        </tr>
+        <tr>
+          <td>pay_0025</td>
+          <td>₹199</td>
+          <td>Expired card</td>
+          <td>Update Method</td>
+          <td><span class="chip chip-high">High</span></td>
+          <td>11</td>
+        </tr>
+        <tr>
+          <td>pay_0046</td>
+          <td>₹799</td>
+          <td>Gateway failure</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-high">High</span></td>
+          <td>11</td>
+        </tr>
+        <tr>
+          <td>pay_0052</td>
+          <td>₹499</td>
+          <td>Card blocked/frozen</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-low">Low</span></td>
+          <td>13</td>
+        </tr>
+        <tr>
+          <td>pay_0009</td>
+          <td>₹199</td>
+          <td>Expired card</td>
+          <td>Update Method</td>
+          <td><span class="chip chip-low">Low</span></td>
+          <td>13</td>
+        </tr>
+        <tr>
+          <td>pay_0040</td>
+          <td>₹799</td>
+          <td>Fraud-pattern block</td>
+          <td>Timing Retry</td>
+          <td><span class="chip chip-high">High</span></td>
+          <td>11</td>
+        </tr>
+        <tr>
+          <td>pay_0041</td>
+          <td>₹499</td>
+          <td>Expired card</td>
+          <td>Update Method</td>
+          <td><span class="chip chip-medium">Medium</span></td>
+          <td>12</td>
+        </tr>
+        <tr>
+          <td>pay_0013</td>
+          <td>₹799</td>
+          <td>UPI/autopay failure</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-low">Low</span></td>
+          <td>13</td>
+        </tr>
+        <tr>
+          <td>pay_0051</td>
+          <td>₹799</td>
+          <td>Bank declined</td>
+          <td>Timing Retry</td>
+          <td><span class="chip chip-medium">Medium</span></td>
+          <td>12</td>
+        </tr>
+        <tr>
+          <td>pay_0005</td>
+          <td>₹199</td>
+          <td>UPI/autopay failure</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-high">High</span></td>
+          <td>11</td>
+        </tr>
+        <tr>
+          <td>pay_0042</td>
+          <td>₹799</td>
+          <td>Insufficient balance</td>
+          <td>Delayed Retry</td>
+          <td><span class="chip chip-high">High</span></td>
+          <td>11</td>
+        </tr>
+        <tr>
+          <td>pay_0015</td>
+          <td>₹499</td>
+          <td>Account/card changed</td>
+          <td>Update Method</td>
+          <td><span class="chip chip-medium">Medium</span></td>
+          <td>12</td>
+        </tr>
+        <tr>
+          <td>pay_0004</td>
+          <td>₹499</td>
+          <td>Card blocked/frozen</td>
+          <td>Notify User</td>
+          <td><span class="chip chip-medium">Medium</span></td>
+          <td>12</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <b>Note on the data:</b> All figures above come from a synthetic batch of 55 simulated failed payments, run through this project's diagnosis, decision, and retry-then-check engine. Whether each account ultimately recovers is decided by an assumed, not-real, recovery-likelihood model per solution branch (Timing Retry 72%, Delayed Retry 60%, Update Method 48%, Notify User 40%) — see <code>audit_log_README.md</code> for full detail. A production version would replace these with real observed retry-success rates from Razorpay.
+  </div>
+
+</div>
+</body>
+</html>
