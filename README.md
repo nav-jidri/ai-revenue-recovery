@@ -9,7 +9,7 @@ Running the full pipeline against a synthetic batch of 55 simulated failed payme
 
 **₹14,563 recovered of ₹24,145 at risk (60.3%)** — 37 accounts recovered, 18 unresolved.
 
-See `dashboard-3.html` for the full interactive breakdown (open in a browser).
+See `dashboard.html` for the full interactive breakdown (open in a browser).
 
 ## Project structure
 
