@@ -42,7 +42,3 @@ Reproducible via a fixed random seed. Outputs a summary to the console and write
 
 This project uses **synthetic data throughout** — a fake failed-payment batch, and a made-up (not real) recovery-likelihood model per solution branch, since no real Razorpay transaction data was available. This is clearly flagged in `data/synthetic_data_README.md` and `audit/audit_log_README.md`. A production version would swap these for real observed data from Razorpay's test/live APIs.
 
-## What's not yet built
-
-- Live Razorpay test-mode API integration (currently simulated)
-- Personalized re-engagement hooks (trending/festival/nostalgia content) — designed in the spec as a future phase, pending merchant-supplied product data that Razorpay itself cannot provide
